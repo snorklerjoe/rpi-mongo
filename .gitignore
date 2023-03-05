@@ -1,4 +1,4 @@
-bins/bin/*
+build/bin/*
 mongo
 mongod
 mongos
