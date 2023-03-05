@@ -1,0 +1,18 @@
+# Target file for Raspberry Pi 4 (BCM2711) with MongoDB v4.4
+
+# Tag name for image:
+IMG_TAG=raspi4-4.4
+
+# MongoDB Release to pull:
+MONGO_RELEASE=v4.4
+
+# MongoDB Build Config:
+CC_PACKAGE=gcc-aarch64-linux-gnu
+CXX_PACKAGE=g++-aarch64-linux-gnu
+DPKG_ARCH=arm64
+MARCH=armv8-a+crc
+MTUNE=cortex-a72
+
+# Container Image Config:
+BASEIMG=arm64v8/mongo
+PLATFORM=arm64
