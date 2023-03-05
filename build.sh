@@ -42,11 +42,26 @@ source $TARGET_CONFIG
 
 if [[ $* == *--build-mongo* ]]; then
     echo -e "${PURPLE}Building MongoDB...${RESTORE}"
-    echo -e "${BLUE}  Compiling/Building... ${RESTORE}"
+    #echo -e "${BLUE}  Compiling/Building... ${RESTORE}"
     # Sed command stolen from https://stackoverflow.com/questions/57091385/how-to-pass-argument-to-dockerfile-from-a-file
-    docker build -t snorklerjoe/rpi-mongo:build . -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ")
+    #docker build -t snorklerjoe/rpi-mongo:build . -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ")
+    
     echo -e "${BLUE}  Creating container...${RESTORE}"
     docker container create --name mongo-bins snorklerjoe/rpi-mongo:build
+
+    echo -e "${BLUE}  Extracting libraries...${RESTORE}"
+    # Note: These libraries are the same as those in build.Dockerfile:
+    LIB_PACKAGES="libssl-dev:${DPKG_ARCH} libcurl4-openssl-dev:${DPKG_ARCH} liblzma-dev:${DPKG_ARCH} libpcap-dev:${DPKG_ARCH}"
+    LIB_SYMLINKS=$(docker run snorklerjoe/rpi-mongo:build dpkg -L ${LIB_PACKAGES} | grep .so)
+    echo $LIB_SYMLINKS
+    for library in ${LIB_SYMLINKS} ; do
+        bin_path=$(docker run snorklerjoe/rpi-mongo:build readlink -f $library)
+        echo $bin_path
+        docker container cp mongo-bins:$bin_path ./build/$(basename $library)
+    done <<< "$LIB_LOCATIONS"
+
+    sleep 1
+
     echo -e "${BLUE}  Extracting compiled binaries...${RESTORE}"
     docker container cp mongo-bins:/root/mongo/build/install/bin ./build/
     echo -e "${BLUE}  Cleaning up.${RESTORE}"

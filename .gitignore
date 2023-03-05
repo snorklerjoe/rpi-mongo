@@ -3,3 +3,4 @@ mongo
 mongod
 mongos
 resmoke.py
+*.so
