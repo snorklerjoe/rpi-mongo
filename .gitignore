@@ -1,1 +1,5 @@
 bins/bin/*
+mongo
+mongod
+mongos
+resmoke.py
