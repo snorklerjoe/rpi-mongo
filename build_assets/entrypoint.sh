@@ -27,7 +27,7 @@ fi
 
 # Change the official entrypoint to not check the architecture...
 # It's probably fine hehehehe...
-sed -i "s/${OFF_ENTRYPT_FIND}/OFF_ENTRYPT_REPLACE/g"
+sed -i "s/${OFF_ENTRYPT_FIND}/OFF_ENTRYPT_REPLACE/g" ${OFFICIAL_ENTRYPOINT}
 
 # Continue with the official entrypoint:
 source ${OFFICIAL_ENTRYPOINT}

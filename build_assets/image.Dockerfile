@@ -19,3 +19,4 @@ ENV OFF_ENTRYPT_REPLACE=${OFF_ENTRYPT_REPLACE}
 ADD build_assets/entrypoint.sh /better_entrypoint.sh
 
 ENTRYPOINT [ "/better_entrypoint.sh" ]
+CMD [ "mongod" ]  # Copied from the base image
