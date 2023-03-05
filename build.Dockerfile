@@ -25,6 +25,6 @@ WORKDIR /root/mongo/
 RUN python3 -m pip install --user -r etc/pip/compile-requirements.txt
 
 ADD build_assets/compile_mongo.sh /root/mongo/
-RUN CC_PACKAGE=${CC_PACKAGE} CXX_PACKAGE=${CXX_PACKAGE} bash ./compile_mongo.sh
+RUN MARCH=${MARCH} MTUNE=${MTUNE} CC_PACKAGE=${CC_PACKAGE} CXX_PACKAGE=${CXX_PACKAGE} bash ./compile_mongo.sh
 
 CMD [ "bash" ]
