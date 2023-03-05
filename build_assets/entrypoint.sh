@@ -18,7 +18,7 @@ fi
 OFFICIAL_ENTRYPOINT=${OFFICIAL_ENTRYPOINT-/usr/local/bin/docker-entrypoint.sh}
 
 # Check the architecture...
-if grep -q ${CPUINFOGREP} /proc/cpuinfo; then
+if ! grep -q ${CPUINFOGREP} /proc/cpuinfo; then
     echo -e "\033[00;31mWRONG ARCHITECTURE!"
     echo -e "    (Looking for ${CPUINFOGREP})"
     echo -e "Aborting.\033[0m"
