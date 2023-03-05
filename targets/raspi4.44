@@ -16,3 +16,8 @@ MTUNE=cortex-a72
 # Container Image Config:
 BASEIMG=arm64v8/mongo
 PLATFORM=arm64
+
+# Runtime CPU check & offcl entrypt patch:
+CPUINFOGREP=BCM2835
+OFF_ENTRYPT_FIND=arm64
+OFF_ENTRYPT_REPLACE=nuthin

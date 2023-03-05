@@ -56,5 +56,5 @@ fi
 
 echo -e "${PURPLE}Building Image...${RESTORE}"
 echo -e "${BLUE}  Building...${RESTORE}"
-docker build -t snorklerjoe/rpi-mongo:${IMG_TAG} . -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ")
+DOCKER_BUILDKIT=1 docker build -t snorklerjoe/rpi-mongo:${IMG_TAG} . -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ")
 

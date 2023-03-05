@@ -6,5 +6,16 @@ ADD build/bin/mongo /bin/
 ADD build/bin/mongod /bin/
 ADD build/bin/mongos /bin/
 
-# From HiFiGuitarGuy's comment here: https://andyfelong.com/2021/08/mongodb-4-4-under-raspberry-pi-os-64-bit-raspbian64/#comments
-RUN sed -i 's/fphp|dcpop|sha3|sm3|sm4|asimddp|sha512|sve/fp|dcpop|sha3|sm3|sm4|asimddp|sha512|sve/g' /usr/local/bin/docker-entrypoint.sh
+# The new entrypoint:
+ARG CPUINFOGREP
+ENV CPUINFOGREP=${CPUINFOGREP}
+
+ARG OFF_ENTRYPT_FIND
+ENV OFF_ENTRYPT_FIND=${OFF_ENTRYPT_FIND}
+
+ARG OFF_ENTRYPT_REPLACE
+ENV OFF_ENTRYPT_REPLACE=${OFF_ENTRYPT_REPLACE}
+
+ADD build_assets/entrypoint.sh /better_entrypoint.sh
+
+ENTRYPOINT [ "/better_entrypoint.sh" ]
