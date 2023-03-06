@@ -4,3 +4,4 @@ mongod
 mongos
 resmoke.py
 *.so
+*.so.*
