@@ -2,11 +2,14 @@ ARG BASEIMG=arm64v8/mongo
 ARG PLATFORM=arm64
 FROM --platform=${PLATFORM} ${BASEIMG}
 
-ADD build/bin/mongo /usr/bin/
-ADD build/bin/mongod /usr/bin/
-ADD build/bin/mongos /usr/bin/
 
-ADD build/lib/* /usr/lib/
+# Grab mongo & Attempt to compile:
+##################################
+
+
+
+# Finish it off:
+################
 
 # The new entrypoint:
 ARG CPUINFOGREP

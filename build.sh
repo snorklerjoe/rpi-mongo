@@ -45,38 +45,62 @@ echo
 # Load parameters from target file:
 source $TARGET_CONFIG
 
-if [[ $* == *--build-mongo* ]]; then
-    echo -e "${PURPLE}Building MongoDB...${RESTORE}"
-    if [[ ! $* == *--skip-compile* ]]; then
-        echo -e "${BLUE}  Compiling/Building... ${RESTORE}"
-        # Sed command stolen from https://stackoverflow.com/questions/57091385/how-to-pass-argument-to-dockerfile-from-a-file
-        sh -c "docker build --security-opt seccomp:unconfined -t snorklerjoe/rpi-mongo:build -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
-    else
-        echo -e "${RED}  Skipping Mongodb Compile${RESTORE}"
-        echo "  (using previously-built image)"
-    fi
+function create_buildx {
+    echo -e "${BLUE}  Creating multiplatform builder...${RESTORE}"
+    BUILDER=rpi-mongo-builder
+    docker buildx create --name ${BUILDER} --platform ${PLATFORM}
+    docker buildx use ${BUILDER}
+    docker buildx inspect --bootstrap
+}
+
+function perform_build {
+    docker buildx build -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
+}
+
+function rm_buildx {
+    echo -e "${BLUE}  Disposing of multiplatform builder...${RESTORE}"
+    docker buildx rm ${BUILDER}
+}
+
+
+echo -e "${PURPLE}Prepping build...${RESTORE}"
+create_buildx;
+
+echo -e "${PURPLE}Cleaning up...${RESTORE}"
+rm_buildx;
+
+# if [[ $* == *--build-mongo* ]]; then
+#     echo -e "${PURPLE}Building MongoDB...${RESTORE}"
+#     if [[ ! $* == *--skip-compile* ]]; then
+#         echo -e "${BLUE}  Compiling/Building... ${RESTORE}"
+#         # Sed command stolen from https://stackoverflow.com/questions/57091385/how-to-pass-argument-to-dockerfile-from-a-file
+#         sh -c "docker build --security-opt seccomp:unconfined -t snorklerjoe/rpi-mongo:build -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
+#     else
+#         echo -e "${RED}  Skipping Mongodb Compile${RESTORE}"
+#         echo "  (using previously-built image)"
+#     fi
     
-    echo -e "${BLUE}  Creating container...${RESTORE}"
-    docker container create --name mongo-bins snorklerjoe/rpi-mongo:build
+#     echo -e "${BLUE}  Creating container...${RESTORE}"
+#     docker container create --name mongo-bins snorklerjoe/rpi-mongo:build
 
-    echo -e "${BLUE}  Extracting libraries...${RESTORE}"
-    # Note: These libraries are the same as those in build.Dockerfile:
-    #LIB_PACKAGES="libssl-dev:${DPKG_ARCH} libcurl4-openssl-dev:${DPKG_ARCH} liblzma-dev:${DPKG_ARCH} libpcap-dev:${DPKG_ARCH}"
-    LIB_SYMLINKS=$(docker run snorklerjoe/rpi-mongo:build dpkg -L ${LIB_PACKAGES} | grep .so)
-    for library in ${LIB_SYMLINKS} ; do
-        bin_path=$(docker run snorklerjoe/rpi-mongo:build readlink -f $library)
-        echo $bin_path
-        docker container cp mongo-bins:$bin_path ./build/lib/$(basename $bin_path)
-    done <<< "$LIB_LOCATIONS"
+#     echo -e "${BLUE}  Extracting libraries...${RESTORE}"
+#     # Note: These libraries are the same as those in build.Dockerfile:
+#     #LIB_PACKAGES="libssl-dev:${DPKG_ARCH} libcurl4-openssl-dev:${DPKG_ARCH} liblzma-dev:${DPKG_ARCH} libpcap-dev:${DPKG_ARCH}"
+#     LIB_SYMLINKS=$(docker run snorklerjoe/rpi-mongo:build dpkg -L ${LIB_PACKAGES} | grep .so)
+#     for library in ${LIB_SYMLINKS} ; do
+#         bin_path=$(docker run snorklerjoe/rpi-mongo:build readlink -f $library)
+#         echo $bin_path
+#         docker container cp mongo-bins:$bin_path ./build/lib/$(basename $bin_path)
+#     done <<< "$LIB_LOCATIONS"
 
-    echo -e "${BLUE}  Extracting compiled binaries...${RESTORE}"
-    docker container cp mongo-bins:/root/mongo/build/install/bin ./build/
-    echo -e "${BLUE}  Cleaning up.${RESTORE}"
-    docker container rm -f mongo-bins
-fi
+#     echo -e "${BLUE}  Extracting compiled binaries...${RESTORE}"
+#     docker container cp mongo-bins:/root/mongo/build/install/bin ./build/
+#     echo -e "${BLUE}  Cleaning up.${RESTORE}"
+#     docker container rm -f mongo-bins
+# fi
 
-echo
-echo -e "${PURPLE}Building Image...${RESTORE}"
-echo -e "${BLUE}  Building...${RESTORE}"
-sh -c "DOCKER_BUILDKIT=1 docker buildx build --platform ${PLATFORM} -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
+# echo
+# echo -e "${PURPLE}Building Image...${RESTORE}"
+# echo -e "${BLUE}  Building...${RESTORE}"
+# sh -c "DOCKER_BUILDKIT=1 docker buildx build --platform ${PLATFORM} -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
 

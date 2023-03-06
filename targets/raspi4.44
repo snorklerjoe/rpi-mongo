@@ -6,14 +6,6 @@ IMG_TAG=raspi4-4.4
 # MongoDB Release to pull:
 MONGO_RELEASE=v4.4
 
-# Libraries to compile into MongoDB
-LIB_APT_DEBIAN="libc6-dev:arm64 libdpkg-dev:arm64 libdpkg-perl:arm64 libgssapi-krb5-2:arm64 debconf:arm64"
-LIB_APT_PRE_CMD="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C"
-LIB_APT_SOURCE=http://ports.ubuntu.com/ubuntu-ports/
-LIB_APT_DIST=jammy
-LIB_APT_COMPONENTS="main restricted multiverse"
-LIB_PACKAGES="libssl-dev:arm64 libcurl4-openssl-dev:arm64 liblzma-dev:arm64 libpcap-dev:arm64"
-
 # MongoDB Build Config:
 CC_PACKAGE=gcc-aarch64-linux-gnu
 CXX_PACKAGE=g++-aarch64-linux-gnu
