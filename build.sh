@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 source inc/colors.sh
 
 function show_help {
@@ -48,7 +50,7 @@ if [[ $* == *--build-mongo* ]]; then
     if [[ ! $* == *--skip-compile* ]]; then
         echo -e "${BLUE}  Compiling/Building... ${RESTORE}"
         # Sed command stolen from https://stackoverflow.com/questions/57091385/how-to-pass-argument-to-dockerfile-from-a-file
-        docker build -t snorklerjoe/rpi-mongo:build . -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ")
+        sh -c "docker build --security-opt seccomp:unconfined -t snorklerjoe/rpi-mongo:build -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
     else
         echo -e "${RED}  Skipping Mongodb Compile${RESTORE}"
         echo "  (using previously-built image)"
@@ -59,7 +61,7 @@ if [[ $* == *--build-mongo* ]]; then
 
     echo -e "${BLUE}  Extracting libraries...${RESTORE}"
     # Note: These libraries are the same as those in build.Dockerfile:
-    LIB_PACKAGES="libssl-dev:${DPKG_ARCH} libcurl4-openssl-dev:${DPKG_ARCH} liblzma-dev:${DPKG_ARCH} libpcap-dev:${DPKG_ARCH}"
+    #LIB_PACKAGES="libssl-dev:${DPKG_ARCH} libcurl4-openssl-dev:${DPKG_ARCH} liblzma-dev:${DPKG_ARCH} libpcap-dev:${DPKG_ARCH}"
     LIB_SYMLINKS=$(docker run snorklerjoe/rpi-mongo:build dpkg -L ${LIB_PACKAGES} | grep .so)
     for library in ${LIB_SYMLINKS} ; do
         bin_path=$(docker run snorklerjoe/rpi-mongo:build readlink -f $library)
@@ -76,5 +78,5 @@ fi
 echo
 echo -e "${PURPLE}Building Image...${RESTORE}"
 echo -e "${BLUE}  Building...${RESTORE}"
-DOCKER_BUILDKIT=1 docker build -t snorklerjoe/rpi-mongo:${IMG_TAG} . -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ")
+sh -c "DOCKER_BUILDKIT=1 docker buildx build --platform ${PLATFORM} -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
 
