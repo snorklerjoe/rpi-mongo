@@ -6,7 +6,7 @@ source inc/colors.sh
 
 function show_help {
 cat << END-OF-HELP
-Usage: ./build.sh [-h/--help] [--build-mongo] target [--skip-compile]
+Usage: ./build.sh [-h/--help] [--reuse-builder] target
 Builds MongoDB from source and creates an unofficial docker image
 
 target should be the name of a file in the current working directory.
@@ -14,11 +14,9 @@ See the existing target files for examples of how to make your own.
 
   -h, --help            Show this help message
 
-      --build-mongo     Compile MongoDB in a Debian docker container
-                        If you're running without this option, there
-                        had better be some binaries in the build/bin folder!
+      --reuse-builder   Reuse the buildx builder instead of pulling a new one
 
-      --skip-compile    Skip compiling mongodb (for testing purposes)
+      --create-builder  Creates the buildx builder and exits
 END-OF-HELP
 }
 
@@ -46,15 +44,18 @@ echo
 source $TARGET_CONFIG
 
 function create_buildx {
+    echo -e "${BLUE}  Running multiarch setup...${RESTORE}"
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     echo -e "${BLUE}  Creating multiplatform builder...${RESTORE}"
     BUILDER=rpi-mongo-builder
+    docker buildx rm ${BUILDER} || true
     docker buildx create --name ${BUILDER} --platform ${PLATFORM}
     docker buildx use ${BUILDER}
     docker buildx inspect --bootstrap
 }
 
 function perform_build {
-    docker buildx build -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
+    docker buildx build -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") --output type=registry .
 }
 
 function rm_buildx {
@@ -64,43 +65,12 @@ function rm_buildx {
 
 
 echo -e "${PURPLE}Prepping build...${RESTORE}"
-create_buildx;
+[[ $* == *--reuse-builder* ]] || create_buildx;
+
+[[ $* == *--create-builder* ]] && exit
+
+echo -e "${PURPLE}Performing build...${RESTORE}"
+perform_build;
 
 echo -e "${PURPLE}Cleaning up...${RESTORE}"
-rm_buildx;
-
-# if [[ $* == *--build-mongo* ]]; then
-#     echo -e "${PURPLE}Building MongoDB...${RESTORE}"
-#     if [[ ! $* == *--skip-compile* ]]; then
-#         echo -e "${BLUE}  Compiling/Building... ${RESTORE}"
-#         # Sed command stolen from https://stackoverflow.com/questions/57091385/how-to-pass-argument-to-dockerfile-from-a-file
-#         sh -c "docker build --security-opt seccomp:unconfined -t snorklerjoe/rpi-mongo:build -f build_assets/build.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
-#     else
-#         echo -e "${RED}  Skipping Mongodb Compile${RESTORE}"
-#         echo "  (using previously-built image)"
-#     fi
-    
-#     echo -e "${BLUE}  Creating container...${RESTORE}"
-#     docker container create --name mongo-bins snorklerjoe/rpi-mongo:build
-
-#     echo -e "${BLUE}  Extracting libraries...${RESTORE}"
-#     # Note: These libraries are the same as those in build.Dockerfile:
-#     #LIB_PACKAGES="libssl-dev:${DPKG_ARCH} libcurl4-openssl-dev:${DPKG_ARCH} liblzma-dev:${DPKG_ARCH} libpcap-dev:${DPKG_ARCH}"
-#     LIB_SYMLINKS=$(docker run snorklerjoe/rpi-mongo:build dpkg -L ${LIB_PACKAGES} | grep .so)
-#     for library in ${LIB_SYMLINKS} ; do
-#         bin_path=$(docker run snorklerjoe/rpi-mongo:build readlink -f $library)
-#         echo $bin_path
-#         docker container cp mongo-bins:$bin_path ./build/lib/$(basename $bin_path)
-#     done <<< "$LIB_LOCATIONS"
-
-#     echo -e "${BLUE}  Extracting compiled binaries...${RESTORE}"
-#     docker container cp mongo-bins:/root/mongo/build/install/bin ./build/
-#     echo -e "${BLUE}  Cleaning up.${RESTORE}"
-#     docker container rm -f mongo-bins
-# fi
-
-# echo
-# echo -e "${PURPLE}Building Image...${RESTORE}"
-# echo -e "${BLUE}  Building...${RESTORE}"
-# sh -c "DOCKER_BUILDKIT=1 docker buildx build --platform ${PLATFORM} -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") ."
-
+[[ $* == *--reuse-builder* ]] || rm_buildx;
