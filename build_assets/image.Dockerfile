@@ -7,11 +7,9 @@ FROM --platform=${PLATFORM} ${BASEIMG}
 #########
 ARG CC_PACKAGE=gcc-aarch64-linux-gnu
 ARG CXX_PACKAGE=g++-aarch64-linux-gnu
-RUN apt-get update && apt-get install -y git python3 python3-pip ${CC_PACKAGE} ${CXX_PACKAGE}
-
 ARG DPKG_ARCH
 RUN dpkg --add-architecture ${DPKG_ARCH}
-RUN apt-get update
+RUN apt-get update && apt-get install -y git python3 python3-pip ${CC_PACKAGE} ${CXX_PACKAGE}
 
 # Grab mongo & Attempt to compile:
 ##################################

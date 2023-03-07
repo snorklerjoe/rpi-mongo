@@ -6,11 +6,16 @@ source inc/colors.sh
 
 function show_help {
 cat << END-OF-HELP
-Usage: ./build.sh [-h/--help] [--reuse-builder] target
+Usage: ./build.sh [-h/--help] TARGET OUTPUT [--reuse-builder]
 Builds MongoDB from source and creates an unofficial docker image
 
 target should be the name of a file in the current working directory.
 See the existing target files for examples of how to make your own.
+
+  TARGET                The target to build. Should be a file in ./targets/
+
+  OUTPUT                A docker-buildkit-compatible output type
+                        (local, registry, ...)
 
   -h, --help            Show this help message
 
@@ -55,7 +60,7 @@ function create_buildx {
 }
 
 function perform_build {
-    docker buildx build -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") --output type=registry .
+    docker buildx build -t snorklerjoe/rpi-mongo:${IMG_TAG} -f build_assets/image.Dockerfile $(grep -o '^[^#]*' "${TARGET_CONFIG}" | sed 's@^@--build-arg @g' | paste -s -d " ") --output type=$OUTPUT_TYPE .
 }
 
 function rm_buildx {
