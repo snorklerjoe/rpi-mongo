@@ -28,16 +28,18 @@ END-OF-HELP
 # Argument flag check stolen from https://stackoverflow.com/questions/2875424/correct-way-to-check-for-a-command-line-flag-in-bash
 [[ $* == *-h* ]] && show_help && exit
 
-if [[ -f "${2}" ]]; then
-    TARGET_CONFIG="${2}"
-elif [[ -f "${1}" ]]; then
-    TARGET_CONFIG="${1}"
-else
-    echo -e "${RED}Bud, looks like you didn't specify a valid target.${RESTORE}"
-    echo -e "Run with \`--help\` to see usage instructions."
-    exit 1
-fi
+#if [[ -f "${2}" ]]; then
+#    TARGET_CONFIG="${2}"
+#elif [[ -f "${1}" ]]; then
+#    TARGET_CONFIG="${1}"
+#else
+#    echo -e "${RED}Bud, looks like you didn't specify a valid target.${RESTORE}"
+#    echo -e "Run with \`--help\` to see usage instructions."
+#    exit 1
+#fi
 
+OUTPUT_TYPE=$2
+TARGET_CONFIG=$1
 
 # Because I'm wicked humble:
 echo -e "${PURPLE}Unofficial MongoDB Docker Image Builder${RESTORE}"
