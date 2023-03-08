@@ -6,8 +6,11 @@ I made some scripts to **build MongoDB from the source**, and package it into a 
 
 
 # :warning: Under Development! :warning:
-It doesn't really work yet, but it probably will in the next day or so.
+It doesn't really work yet, but it probably will eventually.
 
+**I don't have time to finish this right now. Current development is happening in a different branch.**
+
+If you want to fork this, look at that other branch. This is something that there seems to be some amount of demand for on the internet.
 
 ## The Goal
 - Maintained images
